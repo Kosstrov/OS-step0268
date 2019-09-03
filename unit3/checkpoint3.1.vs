@@ -6,7 +6,7 @@ al C:83e4 .syscall17
 al C:8100 .TRAPS
 al C:8200 .main
 al C:8201 .vf011wr
-al C:800 .SCREEN
+al C:400 .SCREEN
 al C:82bb .syscall50
 al C:82b2 .syscall51
 al C:8297 .syscall54

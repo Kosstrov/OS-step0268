@@ -5,7 +5,7 @@
 .segmentdef Data [startAfter="Code", min=$8200, max=$bdff]
 .segmentdef Stack [min=$be00, max=$beff, fill]
 .segmentdef Zeropage [min=$bf00, max=$bfff, fill]
-  .label SCREEN = $800
+  .label SCREEN = $400
   .const JMP = $4c
   .const NOP = $ea
 .segment Code

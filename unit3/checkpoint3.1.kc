@@ -1,36 +1,37 @@
 import "string"
 #pragma link("helper2.ld")
-
 const char* RASTER = 0xd012;
 const char* VIC_MEMORY = 0xd018;
-const char* SCREEN = 0x0800;
-const char* BGCOL = 0xd040;
+const char* SCREEN = 0x0400;
+const char* BGCOL = 0xd021;
 const char* COLS = 0xd800;
 const char BLACK = 0;
 const char WHITE = 1;
-
+const char GREEN = 5;
+const char RED = 2;
 char[] MESSAGE = "step0268 operating system starting...";
 char[] MESSAGE2 = "testing hardware";
-unsigned char *cur_scr_line=$0400;
-unsigned char cur_scr_x=0;
 
-void print_nL (){
-cur_scr_line=cur_scr_line+40;
-unsigned char cur_scr_x=0;
-}
+unsigned char *current_screen_line = 0x0400;
+unsigned char current_screen_x = 0;
 
 void main(){
+
 }
 
-void print_to_scr(char *message){
-char* sc=cur_scr_line+cur_scr_x;
+void print_newLine() {
+current_screen_line = current_screen_line +40;
+current_screen_x = 0;
+}
 
+void print_to_screen(char *message) {
+char* sc = current_screen_line + current_screen_x;
 while(*message){
-*sc++=message++;
-cur_scr_x++;
+*sc++ = *message++;
+current_screen_x++;
+}
 }
 
-}
 
 
 void syscall1() {*(SCREEN+79) = ')'; exit_hypervisor();}
@@ -238,30 +239,27 @@ export struct SysCall[] undefined_trap = {
 { JMP, &vf011wr, NOP }
 };
 
-void RESET(){
+void RESET() {
 *VIC_MEMORY = 0x14;
 memset(SCREEN, ' ', 40*25);
-memset(COLS, WHITE, 40*25);
+memset(COLS, 6, 40*25);
 
-while(true){
-if(*RASTER==80 || *RASTER==200) {
-*BGCOL=WHITE;} else {
-*BGCOL = BLACK;
+while(true) {
+if(*RASTER==50 || *RASTER==200) {
+	*BGCOL = 2;
+} else {
+	*BGCOL = GREEN;
 }
-print_to_scr(MESSAGE);
-print_nL();
-print_to_scr(MESSAGE2);
 
-
+print_to_screen(*MESSAGE);
+print_newLine();
+print_to_screen(*MESSAGE2);
 while(true) continue;
 }
 }
 
-
-void exit_hypervisor ()
+void exit_hypervisor()
 
 {
 *(unsigned char*)$D67F = $01;
 }
-
-

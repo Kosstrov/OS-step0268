@@ -1322,7 +1322,7 @@
    </Segment>
 
    <Labels values="SEGMENT,ADDRESS,NAME">
-      Default,$0800,SCREEN
+      Default,$0400,SCREEN
       Code,$8200,main
       Code,$8201,vf011wr
       Code,$820a,exit_hypervisor
