@@ -1,4 +1,4 @@
-  .file [name="checkpoint2.3.bin", type="bin", segments="XMega65Bin"]
+  .file [name="checkpoint2.30.bin", type="bin", segments="XMega65Bin"]
 .segmentdef XMega65Bin [segments="Syscall, Code, Data, Stack, Zeropage"]
 .segmentdef Syscall [start=$8000, max=$81ff]
 .segmentdef Code [start=$8200, min=$8200, max=$bdff]
@@ -41,9 +41,9 @@ main: {
     lda #>$28*$19
     sta.z memset.num+1
     jsr memset
-    lda #<SCREEN+$a*$28
+    lda #<SCREEN+5*$28
     sta.z sc
-    lda #>SCREEN+$a*$28
+    lda #>SCREEN+5*$28
     sta.z sc+1
     lda #<MESSAGE
     sta.z msg
@@ -53,7 +53,9 @@ main: {
     ldy #0
     lda (msg),y
     cmp #0
-    bne b2
+    beq !b2+
+    jmp b2
+  !b2:
     lda #<SCREEN+$14*$28
     sta.z sc2
     lda #>SCREEN+$14*$28
@@ -70,28 +72,53 @@ main: {
   b5:
     lda RASTER
     cmp #$32
-    bcc b8
+    bcc b6
     cmp #$64+1
-    bcs b8
+    bcc b11
+    cmp #$96
+    bcc b6
+  b11:
+    lda RASTER
+    cmp #$b4+1
+    bcc b10
+    cmp #$c8
+    bcc b6
+  b10:
+    lda #$f5
+    cmp RASTER
+    beq b6
     lda #GREEN
     sta BGCOL
     jmp b5
-  b8:
-    ldx #0
   b6:
-    cpx #$19
-    bcc b7
-    jmp b5
+    ldx #0
   b7:
-    inc SCREEN,x
+    lda #$53
+    sta SCREEN,x
     lda #0
     sta BGCOL
     lda #1
     sta BGCOL
     lda #2
     sta BGCOL
+    lda #3
+    sta BGCOL
+    lda #4
+    sta BGCOL
+    lda #5
+    sta BGCOL
+    lda #6
+    sta BGCOL
+    lda #7
+    sta BGCOL
+    lda #8
+    sta BGCOL
+    lda #9
+    sta BGCOL
     inx
-    jmp b6
+    cpx #$19
+    bcc b7
+    jmp b5
   b4:
     ldy #0
     lda (msg2),y
@@ -576,6 +603,8 @@ syscall2: {
     jsr exit_hypervisor
     rts
 }
+//	while(true){
+//}
 syscall1: {
     lda #')'
     sta SCREEN+$4f

@@ -1,63 +1,37 @@
 import "string"
 #pragma link("helper2.ld")
+
 const char* RASTER = 0xd012;
 const char* VIC_MEMORY = 0xd018;
-const char* SCREEN = 0x0400;
-const char* BGCOL = 0xd021;
+const char* SCREEN = 0x0800;
+const char* BGCOL = 0xd040;
 const char* COLS = 0xd800;
 const char BLACK = 0;
 const char WHITE = 1;
-const char GREEN = 5;
-const char RED = 2;
+
 char[] MESSAGE = "step0268 operating system starting...";
 char[] MESSAGE2 = "testing hardware";
+unsigned char *cur_scr_line=$0400;
+unsigned char cur_scr_x=0;
 
-char[] HELLO = "hello world!";
-char* at = 0x0002;
-
-unsigned char i, j, k;
+void print_nL (){
+cur_scr_line=cur_scr_line+40;
+unsigned char cur_scr_x=0;
+}
 
 void main(){
-*VIC_MEMORY = 0x14;
-memset(SCREEN, ' ', 40*25);
-memset(COLS, 6, 40*25);
-
-char* sc = SCREEN+10*40;
-char* msg = MESSAGE;
-while(*msg){
-*sc++ = *msg++;
-}
-char* sc2 = SCREEN+20*40;
-char* msg2 = MESSAGE2;
-while(*msg2){
-{*sc2++ = *msg2++;
-}
 }
 
-while(true) {
-if(*RASTER<50 || *RASTER>100) {
-	sc=SCREEN;
-for (i=0;i<25;i++) {
-sc[i]++;
-*BGCOL=0;
-*BGCOL = 1;
-*BGCOL = 2;
-}
-} else {
-*BGCOL = GREEN;
-}
-}
-char* sc3 = SCREEN+5*40;
-char* msg_a = HELLO;
-while(*msg_a){
-{*sc3++ = *msg_a++;
+void print_to_scr(char *message){
+char* sc=cur_scr_line+cur_scr_x;
+
+while(*message){
+*sc++=message++;
+cur_scr_x++;
 }
 
 }
 
-
-while(true) continue;
-}
 
 void syscall1() {*(SCREEN+79) = ')'; exit_hypervisor();}
 void syscall2() {*(SCREEN+78) = ')'; exit_hypervisor();}
@@ -264,8 +238,30 @@ export struct SysCall[] undefined_trap = {
 { JMP, &vf011wr, NOP }
 };
 
+void RESET(){
+*VIC_MEMORY = 0x14;
+memset(SCREEN, ' ', 40*25);
+memset(COLS, WHITE, 40*25);
+
+while(true){
+if(*RASTER==80 || *RASTER==200) {
+*BGCOL=WHITE;} else {
+*BGCOL = BLACK;
+}
+print_to_scr(MESSAGE);
+print_nL();
+print_to_scr(MESSAGE2);
+
+
+while(true) continue;
+}
+}
+
+
 void exit_hypervisor ()
 
 {
 *(unsigned char*)$D67F = $01;
 }
+
+

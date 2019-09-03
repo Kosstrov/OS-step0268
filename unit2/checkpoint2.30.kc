@@ -12,17 +12,15 @@ const char RED = 2;
 char[] MESSAGE = "step0268 operating system starting...";
 char[] MESSAGE2 = "testing hardware";
 
-char[] HELLO = "hello world!";
-char* at = 0x0002;
+unsigned char i;
 
-unsigned char i, j, k;
 
 void main(){
 *VIC_MEMORY = 0x14;
 memset(SCREEN, ' ', 40*25);
 memset(COLS, 6, 40*25);
 
-char* sc = SCREEN+10*40;
+char* sc = SCREEN+5*40;
 char* msg = MESSAGE;
 while(*msg){
 *sc++ = *msg++;
@@ -35,29 +33,30 @@ while(*msg2){
 }
 
 while(true) {
-if(*RASTER<50 || *RASTER>100) {
+if(*RASTER<50 || *RASTER>100 && *RASTER<150 || *RASTER>180 && *RASTER<200 || *RASTER==245) {
 	sc=SCREEN;
 for (i=0;i<25;i++) {
-sc[i]++;
+sc[i]=83;
 *BGCOL=0;
 *BGCOL = 1;
 *BGCOL = 2;
+*BGCOL = 3;
+*BGCOL = 4;
+*BGCOL = 5;
+*BGCOL = 6;
+*BGCOL = 7;
+*BGCOL = 8;
+*BGCOL = 9;
 }
 } else {
 *BGCOL = GREEN;
 }
 }
-char* sc3 = SCREEN+5*40;
-char* msg_a = HELLO;
-while(*msg_a){
-{*sc3++ = *msg_a++;
-}
-
 }
 
 
-while(true) continue;
-}
+//	while(true){
+//}
 
 void syscall1() {*(SCREEN+79) = ')'; exit_hypervisor();}
 void syscall2() {*(SCREEN+78) = ')'; exit_hypervisor();}

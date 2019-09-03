@@ -5,19 +5,15 @@
 .segmentdef Data [startAfter="Code", min=$8200, max=$bdff]
 .segmentdef Stack [min=$be00, max=$beff, fill]
 .segmentdef Zeropage [min=$bf00, max=$bfff, fill]
-  .label RASTER = $d012
   .label VIC_MEMORY = $d018
   .label SCREEN = $400
   .label BGCOL = $d021
   .label COLS = $d800
-  .const BLACK = 0
-  .const WHITE = 1
   .const JMP = $4c
   .const NOP = $ea
+  .label sc = 2
 .segment Code
 main: {
-    .label sc = 4
-    .label msg = 2
     lda #$14
     sta VIC_MEMORY
     ldx #' '
@@ -30,55 +26,70 @@ main: {
     lda #>$28*$19
     sta.z memset.num+1
     jsr memset
-    ldx #WHITE
+    ldx #2
     lda #<COLS
     sta.z memset.str
     lda #>COLS
     sta.z memset.str+1
-    lda #<$28*$19
+    lda #<$28*$f
     sta.z memset.num
-    lda #>$28*$19
+    lda #>$28*$f
     sta.z memset.num+1
     jsr memset
-    lda #<SCREEN+$28
-    sta.z sc
-    lda #>SCREEN+$28
-    sta.z sc+1
-    lda #<MESSAGE
-    sta.z msg
-    lda #>MESSAGE
-    sta.z msg+1
   b1:
-    ldy #0
-    lda (msg),y
-    cmp #0
-    bne b2
-  b3:
-    lda #$36
-    cmp RASTER
-    beq b4
-    lda #$42
-    cmp RASTER
-    beq b4
-    lda #BLACK
-    sta BGCOL
-    jmp b3
-  b4:
-    lda #WHITE
-    sta BGCOL
-    jmp b3
+    lda #<SCREEN
+    sta.z sc
+    lda #>SCREEN
+    sta.z sc+1
+    ldx #0
   b2:
-    ldy #0
-    lda (msg),y
+    lda #$53
+    ldy #2
     sta (sc),y
-    inc.z sc
-    bne !+
+    lda #$2d
+    clc
+    adc.z sc
+    sta.z sc
+    bcc !+
     inc.z sc+1
   !:
-    inc.z msg
-    bne !+
-    inc.z msg+1
+    lda #0
+    sta BGCOL
+    inx
+    cpx #8
+    bcc b2
+    ldy #8
+  b4:
+    lda #$53
+    sta (sc),y
+    lda #$2d
+    clc
+    adc.z sc
+    sta.z sc
+    bcc !+
+    inc.z sc+1
   !:
+    lda #7
+    sta BGCOL
+    iny
+    cpy #$10
+    bcc b4
+    ldy #$10
+  b6:
+    lda #$53
+    sta (sc),y
+    lda #$2d
+    clc
+    adc.z sc
+    sta.z sc
+    bcc !+
+    inc.z sc+1
+  !:
+    lda #2
+    sta BGCOL
+    iny
+    cpy #$19
+    bcc b6
     jmp b1
 }
 // Copies the character c (an unsigned char) to the first num characters of the object pointed to by the argument str.
@@ -129,9 +140,6 @@ syscall1: {
     sta SCREEN+$4f
     rts
 }
-.segment Data
-  MESSAGE: .text "hello world!"
-  .byte 0
 .segment Syscall
   .align $100
 SYSCALLS:

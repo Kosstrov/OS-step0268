@@ -1,161 +1,16 @@
-  .file [name="checkpoint2.3.bin", type="bin", segments="XMega65Bin"]
+  .file [name="checkpoint3.1.bin", type="bin", segments="XMega65Bin"]
 .segmentdef XMega65Bin [segments="Syscall, Code, Data, Stack, Zeropage"]
 .segmentdef Syscall [start=$8000, max=$81ff]
 .segmentdef Code [start=$8200, min=$8200, max=$bdff]
 .segmentdef Data [startAfter="Code", min=$8200, max=$bdff]
 .segmentdef Stack [min=$be00, max=$beff, fill]
 .segmentdef Zeropage [min=$bf00, max=$bfff, fill]
-  .label RASTER = $d012
-  .label VIC_MEMORY = $d018
-  .label SCREEN = $400
-  .label BGCOL = $d021
-  .label COLS = $d800
-  .const GREEN = 5
+  .label SCREEN = $800
   .const JMP = $4c
   .const NOP = $ea
 .segment Code
 main: {
-    .label sc = 8
-    .label msg = 6
-    .label sc2 = 4
-    .label msg2 = 2
-    lda #$14
-    sta VIC_MEMORY
-    ldx #' '
-    lda #<SCREEN
-    sta.z memset.str
-    lda #>SCREEN
-    sta.z memset.str+1
-    lda #<$28*$19
-    sta.z memset.num
-    lda #>$28*$19
-    sta.z memset.num+1
-    jsr memset
-    ldx #6
-    lda #<COLS
-    sta.z memset.str
-    lda #>COLS
-    sta.z memset.str+1
-    lda #<$28*$19
-    sta.z memset.num
-    lda #>$28*$19
-    sta.z memset.num+1
-    jsr memset
-    lda #<SCREEN+$a*$28
-    sta.z sc
-    lda #>SCREEN+$a*$28
-    sta.z sc+1
-    lda #<MESSAGE
-    sta.z msg
-    lda #>MESSAGE
-    sta.z msg+1
-  b1:
-    ldy #0
-    lda (msg),y
-    cmp #0
-    bne b2
-    lda #<SCREEN+$14*$28
-    sta.z sc2
-    lda #>SCREEN+$14*$28
-    sta.z sc2+1
-    lda #<MESSAGE2
-    sta.z msg2
-    lda #>MESSAGE2
-    sta.z msg2+1
-  b3:
-    ldy #0
-    lda (msg2),y
-    cmp #0
-    bne b4
-  b5:
-    lda RASTER
-    cmp #$32
-    bcc b8
-    cmp #$64+1
-    bcs b8
-    lda #GREEN
-    sta BGCOL
-    jmp b5
-  b8:
-    ldx #0
-  b6:
-    cpx #$19
-    bcc b7
-    jmp b5
-  b7:
-    inc SCREEN,x
-    lda #0
-    sta BGCOL
-    lda #1
-    sta BGCOL
-    lda #2
-    sta BGCOL
-    inx
-    jmp b6
-  b4:
-    ldy #0
-    lda (msg2),y
-    sta (sc2),y
-    inc.z sc2
-    bne !+
-    inc.z sc2+1
-  !:
-    inc.z msg2
-    bne !+
-    inc.z msg2+1
-  !:
-    jmp b3
-  b2:
-    ldy #0
-    lda (msg),y
-    sta (sc),y
-    inc.z sc
-    bne !+
-    inc.z sc+1
-  !:
-    inc.z msg
-    bne !+
-    inc.z msg+1
-  !:
-    jmp b1
-}
-// Copies the character c (an unsigned char) to the first num characters of the object pointed to by the argument str.
-// memset(void* zeropage(8) str, byte register(X) c, word zeropage(6) num)
-memset: {
-    .label end = 6
-    .label dst = 8
-    .label num = 6
-    .label str = 8
-    lda.z num
-    bne !+
-    lda.z num+1
-    beq breturn
-  !:
-    lda.z end
-    clc
-    adc.z str
-    sta.z end
-    lda.z end+1
-    adc.z str+1
-    sta.z end+1
-  b2:
-    lda.z dst+1
-    cmp.z end+1
-    bne b3
-    lda.z dst
-    cmp.z end
-    bne b3
-  breturn:
     rts
-  b3:
-    txa
-    ldy #0
-    sta (dst),y
-    inc.z dst
-    bne !+
-    inc.z dst+1
-  !:
-    jmp b2
 }
 vf011wr: {
     lda #')'
@@ -582,11 +437,6 @@ syscall1: {
     jsr exit_hypervisor
     rts
 }
-.segment Data
-  MESSAGE: .text "step0268 operating system starting..."
-  .byte 0
-  MESSAGE2: .text "testing hardware"
-  .byte 0
 .segment Syscall
   .align $100
 SYSCALLS:
