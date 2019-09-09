@@ -9,18 +9,27 @@ const char BLACK = 0;
 const char WHITE = 1;
 const char GREEN = 5;
 const char RED = 2;
-char[] MESSAGE1 = "step0268 operating system starting...";
+char[] MESSAGE1 = "step0268 punk rock machine...";
 char[] MESSAGE2 = "testing hardware";
+char[] MESSAGE3 = "memory error at $";
+char[] MESSAGE4 = "the value is $";
+char[] MESSAGE5 = "memory found at $";
+char[] MESSAGE6 = " - $";
 
 unsigned char *current_screen_line = 0x0400;
 unsigned char current_screen_x = 0;
+unsigned short mem_start=0x0800;
+unsigned short mem_end=0x7FFF; 
+unsigned char j, k, mem_err;
+volatile unsigned char *p;
+unsigned short start = 0;
 
 void print_newLine() {
 current_screen_line = current_screen_line +40;
 current_screen_x = 0;
 }
 
-void main(){
+void main() {
 }
 
 void print_to_screen(char *message) {
@@ -32,8 +41,60 @@ current_screen_x++;
 }
 
 
+void print_hex(unsigned short value) {
+char[5] hex;
+unsigned char i;
+for(i=0;i<4;i++){
+	if (value<0xa000) hex[i]='0'+(char)(value>>12);
+	else hex[i]=(char)(value>>12)-9;
+	value<<=4; 
+	}
+hex[4]=0;
+print_to_screen(hex);
+}
 
-void syscall1() {*(SCREEN+79) = ')'; exit_hypervisor();}
+
+void test_memory() {
+	p=start;
+	while(start<0x0800) {
+		current_screen_x=0;
+		print_to_screen(MESSAGE3);
+		print_hex(start);
+		start++;
+	}
+	print_newLine();
+	print_to_screen(MESSAGE4);
+	print_hex(0x7FFF);
+	print_newLine();
+	print_to_screen(MESSAGE5);
+	mem_start=start;
+	print_hex(mem_start);
+	print_to_screen(MESSAGE6);
+	mem_end=0x7FFF;
+	print_hex(mem_end);
+}
+
+
+
+/*
+do{
+attemp to write every value;
+correctly read back;
+} while (incorrectly read back;)
+print("memory error at" + $xxxx);
+unsigned char mem_end = $xxxx-1;
+print("memory found at" + mem_start "-" mem_end);
+}
+for () {
+1. going through all range of memory
+2. write and read
+}
+*/
+
+
+	
+
+void syscall1() {exit_hypervisor();}
 void syscall2() {exit_hypervisor();}
 void syscall3() {exit_hypervisor();}
 void syscall4() {exit_hypervisor();}
@@ -249,6 +310,18 @@ if(*RASTER==50 || *RASTER==200) {
 print_to_screen(MESSAGE1);
 print_newLine();
 print_to_screen(MESSAGE2);
+print_newLine();
+
+test_memory();
+/*print_to_screen(MESSAGE3);
+print_to_hex(*);
+print_newLine();
+print_to_screen(MESSAGE4);
+print_to_hex(*);
+print_to_screen(MESSAGE5);
+print_to_hex(*);
+*/
+
 while(true) continue;
 }
 }
