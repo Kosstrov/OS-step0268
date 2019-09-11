@@ -1,0 +1,413 @@
+import "string"
+#pragma link("helper2.ld")
+const char* RASTER = 0xd012;
+const char* VIC_MEMORY = 0xd018;
+const char* SCREEN = 0x0400;
+const char* BGCOL = 0xd021;
+const char* COLS = 0xd800;
+const char BLACK = 0;
+const char WHITE = 1;
+const char GREEN = 5;
+const char RED = 2;
+char[] MESSAGE1 = "step0268 operating system starting...";
+char[] MESSAGE2 = "testing hardware";
+char[] MESSAGE3 = "vic-ii detected at $";
+char[] MESSAGE4 = "the value is $";
+char[] MESSAGE5 = "memory found at $";
+char[] MESSAGE6 = " - $";
+char[] MESSAGE7 = "finished probing devices";
+char[] MESSAGE8 = "memory error at $";
+
+
+
+unsigned char *current_screen_line = 0x0400;
+unsigned char current_screen_x = 0;
+
+unsigned short mem_start = 0x0800;
+unsigned short mem_end = 0x0800; 
+unsigned char value, i, v1, v2;
+volatile unsigned char *p = 0x0800;
+unsigned short start = 0;
+
+void print_newLine() {
+current_screen_line = current_screen_line +40;
+current_screen_x = 0;
+}
+
+void main() {
+}
+
+void print_to_screen(char *message) {
+char* sc = current_screen_line + current_screen_x;
+while(*message){
+*sc++ = *message++;
+current_screen_x++;
+}
+}
+
+
+void RESET() {
+*VIC_MEMORY = 0x14;
+memset(SCREEN, ' ', 40*25);
+memset(COLS, 6, 40*25);
+
+while(false) {
+if(*RASTER==50 || *RASTER==200) {
+	*BGCOL = 2;
+} else {
+	*BGCOL = GREEN;
+}
+}
+
+print_to_screen(MESSAGE1);
+print_newLine();
+print_to_screen(MESSAGE2);
+print_newLine();
+
+detect_devices();
+exit_hypervisor();
+}
+
+
+
+void print_hex(unsigned short value) {
+char[5] hex;
+unsigned char i;
+for(i=0;i<4;i++){
+	if (value<0xa000) hex[i]='0'+(char)(value>>12);
+	else hex[i]=(char)(value>>12)-9;
+	value<<=4; 
+	}
+hex[4]=0;
+print_to_screen(hex);
+}
+
+
+void test_memory() {
+	unsigned short mem_start=0x0800;
+	unsigned short mem_end=0x0800;
+	unsigned char value;
+	volatile unsigned char *p = 0x0800;
+	
+	while(p<0x8000) {
+		value = 0;
+		do {
+			*p = value;
+			if(*p!=value) {
+				print_to_screen(MESSAGE8);
+				print_hex((unsigned short)p);
+				mem_end = (unsigned short)p-1;
+				print_to_screen(MESSAGE5);
+				print_hex((unsigned short)mem_start);
+				print_to_screen(MESSAGE6);
+				print_hex((unsigned short)mem_end);
+				print_newLine();
+				return;				
+				}
+		value++;
+		}
+	while(value!=0);
+	p++;
+	}
+mem_end=0x7FFF;
+print_to_screen(MESSAGE5);
+print_hex((unsigned short)mem_start);
+print_to_screen(MESSAGE6);
+print_hex((unsigned short)mem_end);
+print_newLine();
+return;
+}
+
+
+void detect_devices() {
+	unsigned short i = 0xD000;
+	for(i=0xD000; i<=0xDFF0;i+=10) {
+		detect_vicii(i);
+		}
+	print_to_screen(MESSAGE7);
+}
+
+char detect_vicii(unsigned short adrs) {
+	volatile unsigned char *p;
+	unsigned short i;
+	p = adrs;
+	v1=p[0x12];
+for(i=1;i<1000;i++) continue;
+	v2=p[0x12];
+if (v2>v1) {
+print_to_screen(MESSAGE3);
+print_hex(adrs);
+print_newLine();
+return 1;
+} else {
+return 0;
+}
+}
+
+
+
+
+
+
+/*
+p=start;
+	while(start<0x0800) {
+		current_screen_x=0;
+		print_to_screen(MESSAGE3);
+		print_hex(start);
+		start++;
+	}
+	print_newLine();
+	print_to_screen(MESSAGE4);
+	print_hex(0x7FFF);
+	print_newLine();
+	print_to_screen(MESSAGE5);
+	mem_start=start;
+	print_hex(mem_start);
+	print_to_screen(MESSAGE6);
+	mem_end=0x7FFF;
+	print_hex(mem_end);
+
+}
+
+
+
+
+do{
+attemp to write every value;
+correctly read back;
+} while (incorrectly read back;)
+print("memory error at" + $xxxx);
+unsigned char mem_end = $xxxx-1;
+print("memory found at" + mem_start "-" mem_end);
+}
+for () {
+1. going through all range of memory
+2. write and read
+}
+*/
+
+
+
+void PAGFAULT() {}
+void RESTORKEY() {}
+void ALTTABKEY() {}
+void VF011RD() {}
+void VF011WR() {}
+void RESERVED() {}
+void CPUKIL() {}
+
+void exit_hypervisor()
+{
+*(unsigned char*)$D67F = $01;
+}
+
+	
+
+void syscall1() {exit_hypervisor();}
+void syscall2() {exit_hypervisor();}
+void syscall3() {exit_hypervisor();}
+void syscall4() {exit_hypervisor();}
+void syscall5() {exit_hypervisor();}
+void syscall6() {exit_hypervisor();}
+void syscall7() {exit_hypervisor();}
+void syscall8() {exit_hypervisor();}
+void syscall9() {exit_hypervisor();}
+void syscall10() {exit_hypervisor();}
+void SECURENTR() {exit_hypervisor();}
+void SECUREXIT() {exit_hypervisor();}
+void syscall13() {exit_hypervisor();}
+void syscall14() {exit_hypervisor();}
+void syscall15() {exit_hypervisor();}
+void syscall16() {exit_hypervisor();}
+void syscall17() {exit_hypervisor();}
+void syscall18() {exit_hypervisor();}
+void syscall19() {exit_hypervisor();}
+void syscall20() {exit_hypervisor();}
+void syscall21() {exit_hypervisor();}
+void syscall22() {exit_hypervisor();}
+void syscall23() {exit_hypervisor();}
+void syscall24() {exit_hypervisor();}
+void syscall25() {exit_hypervisor();}
+void syscall26() {exit_hypervisor();}
+void syscall27() {exit_hypervisor();}
+void syscall28() {exit_hypervisor();}
+void syscall29() {exit_hypervisor();}
+void syscall30() {exit_hypervisor();}
+void syscall31() {exit_hypervisor();}
+void syscall32() {exit_hypervisor();}
+void syscall33() {exit_hypervisor();}
+void syscall34() {exit_hypervisor();}
+void syscall35() {exit_hypervisor();}
+void syscall36() {exit_hypervisor();}
+void syscall37() {exit_hypervisor();}
+void syscall38() {exit_hypervisor();}
+void syscall39() {exit_hypervisor();}
+void syscall40() {exit_hypervisor();}
+void syscall41() {exit_hypervisor();}
+void syscall42() {exit_hypervisor();}
+void syscall43() {exit_hypervisor();}
+void syscall44() {exit_hypervisor();}
+void syscall45() {exit_hypervisor();}
+void syscall46() {exit_hypervisor();}
+void syscall47() {exit_hypervisor();}
+void syscall48() {exit_hypervisor();}
+void syscall49() {exit_hypervisor();}
+void syscall50() {exit_hypervisor();}
+void syscall51() {exit_hypervisor();}
+void syscall52() {exit_hypervisor();}
+void syscall53() {exit_hypervisor();}
+void syscall54() {exit_hypervisor();}
+void syscall55() {exit_hypervisor();}
+void syscall56() {exit_hypervisor();}
+void syscall57() {exit_hypervisor();}
+void syscall58() {exit_hypervisor();}
+void syscall59() {exit_hypervisor();}
+void syscall60() {exit_hypervisor();}
+void syscall61() {exit_hypervisor();}
+void syscall62() {exit_hypervisor();}
+void syscall63() {exit_hypervisor();}
+void syscall64() {exit_hypervisor();}
+
+#pragma data_seg(Syscall)
+struct SysCall{
+char xjmp;
+void()* syscall;
+char xnop;
+};
+const char JMP = 0x4c;
+const char NOP = 0xea;
+export align(0x100) struct SysCall[] SYSCALLS = {
+{ JMP, &syscall1, NOP },
+{ JMP, &syscall2, NOP },
+{ JMP, &syscall3, NOP },
+{ JMP, &syscall4, NOP },
+{ JMP, &syscall5, NOP },
+{ JMP, &syscall6, NOP },
+{ JMP, &syscall7, NOP },
+{ JMP, &syscall8, NOP },
+{ JMP, &syscall9, NOP },
+{ JMP, &syscall10, NOP },
+{ JMP, &SECURENTR, NOP },
+{ JMP, &SECUREXIT, NOP },
+{ JMP, &syscall13, NOP },
+{ JMP, &syscall14, NOP },
+{ JMP, &syscall15, NOP },
+{ JMP, &syscall16, NOP },
+{ JMP, &syscall17, NOP },
+{ JMP, &syscall18, NOP },
+{ JMP, &syscall19, NOP },
+{ JMP, &syscall20, NOP },
+{ JMP, &syscall21, NOP },
+{ JMP, &syscall22, NOP },
+{ JMP, &syscall23, NOP },
+{ JMP, &syscall24, NOP },
+{ JMP, &syscall25, NOP },
+{ JMP, &syscall26, NOP },
+{ JMP, &syscall27, NOP },
+{ JMP, &syscall28, NOP },
+{ JMP, &syscall29, NOP },
+{ JMP, &syscall30, NOP },
+{ JMP, &syscall31, NOP },
+{ JMP, &syscall32, NOP },
+{ JMP, &syscall33, NOP },
+{ JMP, &syscall34, NOP },
+{ JMP, &syscall35, NOP },
+{ JMP, &syscall36, NOP },
+{ JMP, &syscall37, NOP },
+{ JMP, &syscall38, NOP },
+{ JMP, &syscall39, NOP },
+{ JMP, &syscall40, NOP },
+{ JMP, &syscall41, NOP },
+{ JMP, &syscall42, NOP },
+{ JMP, &syscall43, NOP },
+{ JMP, &syscall44, NOP },
+{ JMP, &syscall45, NOP },
+{ JMP, &syscall46, NOP },
+{ JMP, &syscall47, NOP },
+{ JMP, &syscall48, NOP },
+{ JMP, &syscall49, NOP },
+{ JMP, &syscall50, NOP },
+{ JMP, &syscall51, NOP },
+{ JMP, &syscall52, NOP },
+{ JMP, &syscall53, NOP },
+{ JMP, &syscall54, NOP },
+{ JMP, &syscall55, NOP },
+{ JMP, &syscall56, NOP },
+{ JMP, &syscall57, NOP },
+{ JMP, &syscall58, NOP },
+{ JMP, &syscall59, NOP },
+{ JMP, &syscall60, NOP },
+{ JMP, &syscall61, NOP },
+{ JMP, &syscall62, NOP },
+{ JMP, &syscall63, NOP },
+{ JMP, &syscall64, NOP }
+};
+export align(0x100) struct SysCall[]SYSCALL_RESET = {
+{ JMP, &RESET, NOP },
+{ JMP, &PAGFAULT, NOP },
+{ JMP, &RESTORKEY, NOP },
+{ JMP, &ALTTABKEY, NOP },
+{ JMP, &VF011RD, NOP },
+{ JMP, &VF011WR, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP },
+{ JMP, &main, NOP }
+};
+
+
+
+/*
+while(true) continue;
+}
+}
+
+void exit_hypervisor()
+
+
+*/
