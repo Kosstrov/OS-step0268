@@ -42,6 +42,44 @@ struct process_descriptor_block {
   	unsigned char* stored_state;
 };
 
+
+struct ipc_message {
+unsigned char from;
+unsigned char to;
+unsigned char priority;
+unsigned char sequence;
+unsigned char[12] message;
+};
+
+const unsigned char *ipc_messages = 0xCB00;
+volatile unsigned char ipc_message_count;
+
+void queue_message(unsigned char from, unsigned char to, unsigned char priority, unsigned char sequence, unsigned char *message)
+{
+if (ipc_message_count>15) return;
+
+struct ipc_message *m = (struct ipc_message*)
+(ipc_messages+ipc_message_count*16);
+
+m->from=from; m->to=to; m->priority=priority; m->sequence=sequence; 
+for(unsigned char i=0;i<12;i++) m->message[i]=message[i];
+ipc_message_count=1;
+}
+
+void dequeue_message(unsigned char message_num)
+{
+if (message_num>=ipc_message_count) return;
+if (message_num==(ipc_message_count-1)) {ipc_message_count--; return;}
+
+unsigned char *dest = (unsigned char *)
+((unsigned short)ipc_messages+message_num*16);
+unsigned char *src = (unsigned char *)
+((unsigned short)ipc_messages+(ipc_message_count-1)*16);
+for(unsigned char i = 0;i<16;i++) dest[i]=src[i];
+ipc_message_count--;
+}
+
+
 // Process stored state will live at $C000-$C7FF, with 256 bytes
 // for each process reserved
 const unsigned char *stored_pdbs = $C000;
@@ -399,6 +437,10 @@ void exit_hypervisor()
 	*(char *)$D67F = $01;
 }
 
+
+
+
+
 //XXX -  Copy your syscall handler functions from os5.2.kc
 //XXX - Don't forget to add describe_pdb(running_pdb); to your handler for SYSCALL $03
 
@@ -414,8 +456,8 @@ void syscall9() {exit_hypervisor();}
 void syscall10() {
 
 	struct process_descriptor_block *pdb = (struct process_descriptor_block*)
-	((unsigned short)strored_pdbs+(((unsigned short)running_pdb)<<8));
-	unsigned char caller_pid_=pdb->process_id;
+	((unsigned short)stored_pdbs+(((unsigned short)running_pdb)<<8));
+	unsigned char caller_pid=pdb->process_id;
 	
 	unsigned char message_id=get_next_message_id(caller_pid);
 	
@@ -535,39 +577,6 @@ if(*RASTER==50 || *RASTER==130) {
 //XXX - Copy your trap handler functions and entry point tables from os5.2.kc
 
 
-struct ipc_message {
-unsigned char from;
-unsigned char to;
-unsigned char priority;
-unsigned char sequence;
-unsigned char[12] message;
-}
-
-const unsigned char *ipc_messages = $CB00;
-volatile unsigned char char ipc_message_count;
-
-void queue_message(unsigned char from, unsigned char to, unsigned char priority, unsigned char sequence, unsigned char *message)
-{
-if (ipc_message_count>15) return;
-
-struct ipc_message *m = (struct ipc_message*)
-(ipc_messages+ipc_message_count*16);
-m->from=from; m->to=to; m->priority=priority; m->sequence=sequence; 
-for(unsigned char i=0;i<12;i++) m->message[i]=message[i];
-ipc_message_count=1;
-}
-
-void dequeue_message(unsigned char message_num)
-{
-if (message_num>=ipc_message_count) return;
-if (message_num==(ipc_message_count-1)) {ipc_message_count--;return}
-unsigned char *dest = (unsigned char *)
-((unsigned short)ipc_message+message_num*16);
-unsigned char *src = (unsigned char *)
-((unsigned short)ipc_message+(ipc_message_count-1)*16);
-for(unsigned char i = 0;i<16;i++) dest[i]=src[i];
-ipc_message_count--;
-}
 
 unsigned char get_next_message_id(unsigned char receiver) {
 	unsigned char best_message = 0xff;
@@ -575,7 +584,7 @@ unsigned char get_next_message_id(unsigned char receiver) {
 		struct ipc_message *m= (struct ipc_message *)
 		(ipc_messages+i*16);
 		if (m->to==receiver){
-			if(best_message==0xff;){best_message=i;}
+			if(best_message==0xff){best_message=i;}
 		}
 	}
 	return best_message;
