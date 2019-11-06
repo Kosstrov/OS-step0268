@@ -18,7 +18,7 @@ const char BLACK = 0;
 const char BLUE = 6;
 const char WHITE = 1;
 
-char[] MESSAGE = "checkpoint 6.2";
+//char[] MESSAGE = "checkpoint 6.3";
 
 const unsigned char STATE_NEW = $01;
 const unsigned char STATE_READY = $02;
@@ -121,7 +121,7 @@ void queue_message(unsigned char from, unsigned char to, unsigned char priority,
 
 for(unsigned char i = 0; i < 12; i++) m->message[i] = message[i];
 
-  ipc_message_count=1;
+  ipc_message_count++;
 }
 
 void dequeue_message(unsigned char message_num){
@@ -129,6 +129,7 @@ void dequeue_message(unsigned char message_num){
   if(message_num==(ipc_message_count-1)){
 	ipc_message_count--;return;
 			}
+
 	unsigned char *dest=(unsigned char *)
 	((unsigned short)ipc_messages+message_num*16);
 	unsigned char *src=(unsigned char *)
@@ -136,12 +137,13 @@ void dequeue_message(unsigned char message_num){
 
 	for(unsigned char i = 0; i < 16; i++) dest[i]=src[i];
 	ipc_message_count--;
+
 }
 
 unsigned char get_text_message_id(unsigned char receiver){
 	unsigned char best_message=0xff;
 
-	for(unsigned char i = 0; i < 16; i++){
+	for(unsigned char i = 0; i < ipc_message_count; i++){
 		struct ipc_message *m=(struct ipc_message *)
 		(ipc_messages+i*16);
 	if(m->to==receiver){
@@ -549,31 +551,33 @@ void RESET() {
     current_screen_line = SCREEN;
 
 // Print the "hello world!" message
-char* sc = SCREEN+40;  // Display it one line down on the screen
-char* msg = MESSAGE; // The messag to display
+//char* sc = SCREEN+40;  // Display it one line down on the screen
+//char* msg = MESSAGE; // The messag to display
 // A simple copy routine to copy the string
-while(*msg) {
-*sc++ = *msg++;
-}
+//while(*msg) {
+//*sc++ = *msg++;
+//}
 
     print_newline();
     print_newline();
     print_newline();
 
 	ipc_message_count=0;
-	initialise_pdb(0,"program1.prg");
+	initialise_pdb(0,"program3.prg");
 	load_program(0);
-	initialise_pdb(1,"program2.prg");
+	initialise_pdb(1,"program4.prg");
 	load_program(1);
 	resume_pdb(1);
 
-	while(true) {
+/*	while(true) {
 	if(*RASTER==54 || *RASTER==66) {
 	*BGCOL = WHITE;
 	} else {
 	*BGCOL = BLUE;
 		}
 	}
+		*/
+		
     exit_hypervisor();
 
 
